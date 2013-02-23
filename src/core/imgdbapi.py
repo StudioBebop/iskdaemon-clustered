@@ -78,7 +78,6 @@ def reloadImgDB():
     # Load db file from copied file
     imgDB = ImgDB(settings)
     imgDB.loadalldbs(cp_path)
-    imgDB.globalFileName(db_path)
 
     # Delete copied file
     os.remove(cp_path)
