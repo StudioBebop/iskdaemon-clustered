@@ -132,7 +132,7 @@ def queryImgID(dbId, id, numres=12, sketch=0, fast=False):
 
     result = imgDB.queryImgID(dbId, id, numres,sketch,fast)
     rootLog.info('| Result -- ' + str(result))
-    if result == 0:
+    if result == [[13L, 0.0]]:
         rootLog.info('| Result was 0 on queryImgId, reloading and trying again')
         reloadImgDB() # Reload db if we get a 0 as this may mean we're working 
                       # with an old copy of the db
@@ -167,7 +167,7 @@ def queryImgBlob(dbId, data, numres=12, sketch=0, fast=False):
     data = base64.b64decode(data)
     result = imgDB.queryImgBlob(dbId, data, numres,sketch,fast)
     rootLog.info('| Result -- ' + str(result))
-    if result == 0:
+    if result == [[13L, 0.0]]:
         rootLog.info('| Result was 0 on queryImgBlob, reloading and trying again')
         reloadImgDB() # Reload db if we get a 0 as this may mean we're working
                       # with an old copy of the db
@@ -199,7 +199,7 @@ def queryImgPath(dbId, path, numres=12, sketch=0, fast=False):
     reloadImgDBIfNeeded()
 
     result = imgDB.queryImgPath(dbId, path, numres,sketch,fast)
-    if result == 0:
+    if result == [[13L, 0.0]]:
         rootLog.info('| Result was 0 on queryImgPath, reloading and trying again')
         reloadImgDB() # Reload db if we get a 0 as this may mean we're working
                       # with an old copy of the db
