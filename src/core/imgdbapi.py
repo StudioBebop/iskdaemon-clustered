@@ -124,13 +124,13 @@ def queryImgID(dbId, id, numres=12, sketch=0, fast=False):
     @change: 0.9.3: added parameter 'sketch'
     @return:  array of arrays: M{[[image id 1, score],[image id 2, score],[image id 3, score], ...]} (id is Integer, score is Double)
     """    
+    global ServiceFacadeInstance, imgDB
     dbId = int(dbId)
     id = int(id)
     numres = int(numres)
     reloadImgDBIfNeeded()
-    
+
     # load balancing
-    global ServiceFacadeInstance
     if settings.core.getboolean('cluster','isClustered') and not imgDB.isImageOnDB(dbId, id):
         for iskc in ServiceFacadeInstance.peerAddressMap.values():
             if iskc.hasImgId(dbId, id): # remote instance has this image. Forward query
@@ -142,9 +142,11 @@ def queryImgID(dbId, id, numres=12, sketch=0, fast=False):
                     #self.peerFailed(e,iskClient)
                     rootLog.error(e)
                     break
+
     # no remote peer has this image, try locally
     result = imgDB.queryImgID(dbId, id, numres,sketch,fast)
     if result == 0:
+        rootLog.info('| Result was 0 on queryImgId, reloading and trying again')
         reloadImgDB() # Reload db if we get a 0 as this may mean we're working 
                       # with an old copy of the db
         result = imgDB.queryImgID(dbId, id, numres,sketch,fast)
@@ -169,6 +171,8 @@ def queryImgBlob(dbId, data, numres=12, sketch=0, fast=False):
     @since: 0.9.3
     @return:  array of arrays: M{[[image id 1, score],[image id 2, score],[image id 3, score], ...]} (id is Integer, score is Double)
     """    
+    global imgDB
+
     dbId = int(dbId)
     numres = int(numres)
     reloadImgDBIfNeeded()
@@ -176,6 +180,7 @@ def queryImgBlob(dbId, data, numres=12, sketch=0, fast=False):
     data = base64.b64decode(data)
     result = imgDB.queryImgBlob(dbId, data, numres,sketch,fast)
     if result == 0:
+        rootLog.info('| Result was 0 on queryImgBlob, reloading and trying again')
         reloadImgDB() # Reload db if we get a 0 as this may mean we're working
                       # with an old copy of the db
         result = imgDB.queryImgBlob(dbId, data, numres,sketch,fast)
@@ -199,13 +204,15 @@ def queryImgPath(dbId, path, numres=12, sketch=0, fast=False):
     
     @since: 0.9.3
     @return:  array of arrays: M{[[image id 1, score],[image id 2, score],[image id 3, score], ...]} (id is Integer, score is Double)
-    """    
+    """
+    global imgDB
     dbId = int(dbId)
     numres = int(numres)
     reloadImgDBIfNeeded()
 
     result = imgDB.queryImgPath(dbId, path, numres,sketch,fast)
     if result == 0:
+        rootLog.info('| Result was 0 on queryImgPath, reloading and trying again')
         reloadImgDB() # Reload db if we get a 0 as this may mean we're working
                       # with an old copy of the db
         result = imgDB.queryImgPath(dbId, path, numres,sketch,fast)
