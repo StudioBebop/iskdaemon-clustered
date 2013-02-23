@@ -32,6 +32,8 @@ import time
 import logging
 import os
 import base64
+import shutil
+import random
 
 import statistics
 from urldownloader import urlToFile
@@ -67,11 +69,23 @@ def reloadImgDBIfNeeded():
         return
     (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat(os.path.expanduser(settings.core.get('database', 'databasePath')))
     if mtime > imgDB_last_modified:
-#        rootLog.info('| RELOADING image database')
-        imgDB = ImgDB(settings)
-        imgDB.loadalldbs(os.path.expanduser(settings.core.get('database', 'databasePath')))
+        rootLog.info('| RELOADING image database')
+
+        # Update access times now
         (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat(os.path.expanduser(settings.core.get('database', 'databasePath')))
         imgDB_last_modified = mtime
+
+        # Copy the db to a second file and load that
+        db_path = os.path.expanduser(settings.core.get('database', 'databasePath'))
+        cp_path = "%s-%d" % (db_path, int(random.random() * 1000000000))
+        shutil.copy2(db_path, cp_path)
+
+        # Load db file from copied file
+        imgDB = ImgDB(settings)
+        imgDB.loadalldbs(cp_path)
+
+        # Delete copied file
+        os.remove(cp_path)
     
 #@memoize.simple_memoized
 def queryImgID(dbId, id, numres=12, sketch=0, fast=False):
