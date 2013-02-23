@@ -130,20 +130,6 @@ def queryImgID(dbId, id, numres=12, sketch=0, fast=False):
     numres = int(numres)
     reloadImgDBIfNeeded()
 
-    # load balancing
-    if settings.core.getboolean('cluster','isClustered') and not imgDB.isImageOnDB(dbId, id):
-        for iskc in ServiceFacadeInstance.peerAddressMap.values():
-            if iskc.hasImgId(dbId, id): # remote instance has this image. Forward query
-                try:
-                    d = iskc.root.callRemote("queryImgID", dbId,id,numres,fast)
-                    return d #TODO this was using blockOn(d)
-                except Exception, e:
-                    #TODO peer failure should be noticed
-                    #self.peerFailed(e,iskClient)
-                    rootLog.error(e)
-                    break
-
-    # no remote peer has this image, try locally
     result = imgDB.queryImgID(dbId, id, numres,sketch,fast)
     if result == 0:
         rootLog.info('| Result was 0 on queryImgId, reloading and trying again')
