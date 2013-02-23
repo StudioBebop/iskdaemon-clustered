@@ -197,7 +197,7 @@ class ImgDB:
                 self.dbSpaces[dbid].lastId = self.getImgCount(dbid) + 1
             log.debug('| Database (%s) loaded with %d spaces' %(fname, dbCount))
             self.globalFileName = fname
-            return dbCount            
+            return dbCount
         except RuntimeError, e:
             log.error(e)
             return 0

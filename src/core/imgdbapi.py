@@ -77,10 +77,16 @@ def reloadImgDB():
 
     # Load db file from copied file
     imgDB = ImgDB(settings)
-    imgDB.loadalldbs(cp_path)
+    result = imgDB.loadalldbs(cp_path)
 
     # Delete copied file
     os.remove(cp_path)
+
+    # If the result was 0, it went wrong, so let's try agian
+    if result == 0:
+        rootLog.info('| ERROR reloading image database, sleeping and then trying again.')
+        time.sleep(0.5)
+        reloadImgDB()
 
 def reloadImgDBIfNeeded():
     global imgDB_last_modified
