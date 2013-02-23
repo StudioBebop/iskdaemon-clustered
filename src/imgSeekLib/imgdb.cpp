@@ -1023,9 +1023,9 @@ std::vector<double> queryImgID(const int dbId, long int id, int numres, int sket
 	//if (!validate_imgid(dbId, id)) { cerr << "ERROR: queryImgID - image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return std::vector<double>();};
 	if (!validate_imgid(dbId, id)) {
 		cerr << "ERROR: queryImgID - image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl; 
-		std::vector<double> a;
-		a.push_back(-1);
-		return a;
+		std::vector<double> array(1);
+		array[0] = -1.0;
+		return array;
 	}
 
 	return queryImgData(dbId, dbSpace[dbId]->sigs[id]->sig1, dbSpace[dbId]->sigs[id]->sig2, dbSpace[dbId]->sigs[id]->sig3,
@@ -1040,9 +1040,9 @@ std::vector<double> queryImgIDFiltered(const int dbId, long int id, int numres, 
 	//if (!validate_imgid(dbId, id)) { cerr << "ERROR: queryImgIDFiltered - image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return std::vector<double>();};
 	if (!validate_imgid(dbId, id)) {
 		cerr << "ERROR: queryImgIDFiltered - image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl;
-		std::vector<double> a;
-		a.push_back(-1);
-		return a;
+		std::vector<double> array(1);
+		array[0] = -1.0;
+		return array;
 	}
 	return queryImgDataFiltered(dbId, dbSpace[dbId]->sigs[id]->sig1, dbSpace[dbId]->sigs[id]->sig2, dbSpace[dbId]->sigs[id]->sig3,
 			dbSpace[dbId]->sigs[id]->avgl, numres, 0, bf, colorOnly);
