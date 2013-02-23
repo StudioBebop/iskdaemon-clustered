@@ -64,7 +64,7 @@ rootLog.info('| image database initialized')
 
 def reloadImgDB():
     global imgDB_last_modified, imgDB
-    rootLog.info('| RELOADING image database')
+    #rootLog.info('| RELOADING image database')
 
     # Update access times now
     (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat(os.path.expanduser(settings.core.get('database', 'databasePath')))
