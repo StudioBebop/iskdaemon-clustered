@@ -89,7 +89,6 @@ def reloadImgDBIfNeeded():
     current_port = settings.core.getint('daemon', 'basePort')
     writer_port = settings.core.getint('daemon', 'writerPort')
     if current_port == writer_port:
-        rootLog.info('| Blocking WRITER instance from reloading image database')
         return
 
     # Return if the db file doesn't exist yet

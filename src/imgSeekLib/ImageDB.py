@@ -210,7 +210,7 @@ class ImgDB:
         if not res:
             log.error("Error saving image database")
             return res
-        log.info('| All database spaces saved at "%s"' % fname)
+#        log.info('| All database spaces saved at "%s"' % fname)
         return res
             
     @utils.requireKnownDbId            
