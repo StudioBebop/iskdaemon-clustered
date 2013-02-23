@@ -31,6 +31,7 @@ __doc__ = '''
 import time
 import logging
 import os
+import base64
 
 import statistics
 from urldownloader import urlToFile
@@ -49,11 +50,29 @@ rootLog = logging.getLogger('imgdbapi')
 rootLog.info('+- Initializing isk-daemon server (version %s) ...' % iskVersion)
 imgDB = ImgDB(settings)
 imgDB.loadalldbs(os.path.expanduser(settings.core.get('database', 'databasePath')))
+try:
+    (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat(os.path.expanduser(settings.core.get('database', 'databasePath')))
+except:
+    mtime = 0
+imgDB_last_modified = mtime
 
 rootLog.info('| image database initialized')
 
 
 ############ Common functions for all comm backends
+
+def reloadImgDBIfNeeded():
+    global imgDB_last_modified
+    if not os.path.exists(os.path.expanduser(settings.core.get('database', 'databasePath'))):
+        return
+    (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat(os.path.expanduser(settings.core.get('database', 'databasePath')))
+    if mtime > imgDB_last_modified:
+#        rootLog.info('| RELOADING image database')
+        imgDB = ImgDB(settings)
+        imgDB.loadalldbs(os.path.expanduser(settings.core.get('database', 'databasePath')))
+        (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat(os.path.expanduser(settings.core.get('database', 'databasePath')))
+        imgDB_last_modified = mtime
+    
 #@memoize.simple_memoized
 def queryImgID(dbId, id, numres=12, sketch=0, fast=False):
     """
@@ -78,6 +97,7 @@ def queryImgID(dbId, id, numres=12, sketch=0, fast=False):
     dbId = int(dbId)
     id = int(id)
     numres = int(numres)
+    reloadImgDBIfNeeded()
     
     # load balancing
     global ServiceFacadeInstance
@@ -116,8 +136,11 @@ def queryImgBlob(dbId, data, numres=12, sketch=0, fast=False):
     """    
     dbId = int(dbId)
     numres = int(numres)
-    
-    return imgDB.queryImgBlob(dbId, data.data, numres,sketch,fast)
+    reloadImgDBIfNeeded()
+
+    data = base64.b64decode(data)
+#    return imgDB.queryImgBlob(dbId, data.data, numres,sketch,fast)
+    return imgDB.queryImgBlob(dbId, data, numres,sketch,fast)
 
 def queryImgPath(dbId, path, numres=12, sketch=0, fast=False):
     """
@@ -140,7 +163,8 @@ def queryImgPath(dbId, path, numres=12, sketch=0, fast=False):
     """    
     dbId = int(dbId)
     numres = int(numres)
-    
+    reloadImgDBIfNeeded()
+
     return imgDB.queryImgPath(dbId, path, numres,sketch,fast)
 
 def addImgBlob(dbId, id, data):
@@ -160,10 +184,11 @@ def addImgBlob(dbId, id, data):
     """
     dbId = int(dbId)
     id = int(id)
+    data = base64.b64decode(data)
 
     try:
         #TODO id should be unsigned long int or something even bigger, also must review swig declarations
-        res = imgDB.addImageBlob(dbId, data.data, id)
+        res = imgDB.addImageBlob(dbId, data, id)
     except Exception, e:
         if str(e) == 'image already in db':
             rootLog.warn(e)        
@@ -223,7 +248,7 @@ def saveDb(dbId):
     
     @since: 0.7
     @return:  1 in case of success.
-    """        
+    """
     dbId = int(dbId)
     return imgDB.savedb(dbId)
 
@@ -337,8 +362,9 @@ def getDbImgCount(dbId):
     
     @since: 0.7
     @return:  image count
-    """    
+    """
     dbId = int(dbId)
+    reloadImgDBIfNeeded()
     return imgDB.getImgCount(dbId)
 
 def isImgOnDb(dbId, id):
@@ -356,6 +382,7 @@ def isImgOnDb(dbId, id):
     """    
     dbId = int(dbId)
     id = int(id)
+    reloadImgDBIfNeeded()
     return imgDB.isImageOnDB( dbId, id)
 
 def getImgDimensions(dbId, id):
@@ -373,6 +400,7 @@ def getImgDimensions(dbId, id):
     """    
     dbId = int(dbId)
     id = int(id)
+    reloadImgDBIfNeeded()
     return imgDB.getImageDimensions(dbId, id)
 
 def calcImgAvglDiff(dbId, id1, id2):
@@ -393,6 +421,7 @@ def calcImgAvglDiff(dbId, id1, id2):
     dbId = int(dbId)
     id1 = int(id1)
     id2 = int(id2)
+    reloadImgDBIfNeeded()
     return imgDB.calcAvglDiff(dbId, id1, id2)
 
 def calcImgDiff(dbId, id1,  id2):
@@ -417,7 +446,7 @@ def calcImgDiff(dbId, id1,  id2):
     dbId = int(dbId)
     id1 = int(id1)
     id2 = int(id2)
-    
+    reloadImgDBIfNeeded()
     return imgDB.calcDiff(dbId, id1,  id2)
 
 def getImgAvgl(dbId, id):
@@ -435,6 +464,7 @@ def getImgAvgl(dbId, id):
     """    
     dbId = int(dbId)
     id1 = int(id)
+    reloadImgDBIfNeeded()
     return imgDB.getImageAvgl(dbId, id1)
 
 def getDbList():
@@ -445,7 +475,8 @@ def getDbList():
     
     @since: 0.7
     @return:  array of db space ids
-    """    
+    """
+    reloadImgDBIfNeeded()
     return imgDB.getDBList()
 
 def getDbImgIdList(dbId):
@@ -461,6 +492,7 @@ def getDbImgIdList(dbId):
     """    
     
     dbId = int(dbId)
+    reloadImgDBIfNeeded()
     return imgDB.getImgIdList(dbId)
 
 def getDbDetailedList():
@@ -485,7 +517,8 @@ def getDbDetailedList():
                             fileName
                             ]
     """    
-    
+
+    reloadImgDBIfNeeded()
     return imgDB.getDBDetailedList()
 
 def saveAllDbsAs(path):
@@ -499,9 +532,9 @@ def saveAllDbsAs(path):
     @since: 0.7
     @return:  total db spaces written
     """    
-    
-    return imgDB.savealldbs(path)
 
+    reloadImgDBIfNeeded()
+    return imgDB.savealldbs(path)
 
 def addKeywordImg(dbId, imgId, hash):
     """
@@ -534,6 +567,7 @@ def getIdsBloomFilter(dbId):
     @return:  bloom filter containing all images on given db id.
     """
     dbId = int(dbId)
+    reloadImgDBIfNeeded()
     return imgDB.getIdsBloomFilter(dbId)
 
 def getClusterKeywords(dbId, numClusters,keywords):
@@ -548,6 +582,7 @@ def getClusterKeywords(dbId, numClusters,keywords):
     @return:  true if image id exists
     """    
     dbId = int(dbId)
+    reloadImgDBIfNeeded()
     return imgDB.getClusterKeywords(dbId, numClusters,keywords)
 
 def getClusterDb(dbId, numClusters):
@@ -562,6 +597,7 @@ def getClusterDb(dbId, numClusters):
     @return:  true if image id exists
     """    
     dbId = int(dbId)
+    reloadImgDBIfNeeded()
     return imgDB.getClusterDb(dbId, numClusters)
 
 def getKeywordsPopular(dbId, numres):
@@ -576,6 +612,7 @@ def getKeywordsPopular(dbId, numres):
     @return:  true if image id exists
     """    
     dbId = int(dbId)
+    reloadImgDBIfNeeded()
     return imgDB.getKeywordsPopular(dbId, numres)
 
 def getKeywordsVisualDistance(dbId, distanceType,  keywords):
@@ -590,6 +627,7 @@ def getKeywordsVisualDistance(dbId, distanceType,  keywords):
     @return:  true if image id exists
     """    
     dbId = int(dbId)
+    reloadImgDBIfNeeded()
     return imgDB.getKeywordsVisualDistance(dbId, distanceType,  keywords)
 
 def getAllImgsByKeywords(dbId, numres, kwJoinType, keywords):
@@ -611,7 +649,8 @@ def getAllImgsByKeywords(dbId, numres, kwJoinType, keywords):
     keywordIds = [int(x) for x in keywords.split(',') if len(x) > 0]
     if len(keywordIds) == 0:
         keywordIds=[0]
-    
+
+    reloadImgDBIfNeeded()
     return imgDB.getAllImgsByKeywords(dbId, numres, kwJoinType, keywordIds)
 
 def queryImgIDFastKeywords(dbId, imgId, numres, kwJoinType, keywords):
@@ -636,6 +675,7 @@ def queryImgIDFastKeywords(dbId, imgId, numres, kwJoinType, keywords):
     dbId = int(dbId)
     imgId = int(imgId)
     keywordIds = [int(x) for x in keywords.split(',') if len(x) > 0]
+    reloadImgDBIfNeeded()
     return imgDB.queryImgIDFastKeywords(dbId, imgId, numres, kwJoinType, keywords)
 
 def queryImgIDKeywords(dbId, imgId, numres, kwJoinType, keywords):
@@ -661,6 +701,7 @@ def queryImgIDKeywords(dbId, imgId, numres, kwJoinType, keywords):
     dbId = int(dbId)
     imgId = int(imgId)
     keywordIds = [int(x) for x in keywords.split(',') if len(x) > 0]
+    reloadImgDBIfNeeded()
     return imgDB.queryImgIDKeywords(dbId, imgId, numres, kwJoinType, keywordIds)
 
 def mostPopularKeywords(dbId, imgs, excludedKwds, count, mode):
@@ -685,7 +726,7 @@ def mostPopularKeywords(dbId, imgs, excludedKwds, count, mode):
     dbId = int(dbId)
     excludedKwds = [int(x) for x in excludedKwds.split(',') if len(x) > 0]
     imgs = [int(x) for x in imgs.split(',') if len(x) > 0]
-    
+    reloadImgDBIfNeeded()
     return imgDB.mostPopularKeywords(dbId, imgs, excludedKwds, count, mode)
 
 def getKeywordsImg(dbId, imgId):
@@ -703,6 +744,7 @@ def getKeywordsImg(dbId, imgId):
     """    
     dbId = int(dbId)
     imgId = int(imgId)
+    reloadImgDBIfNeeded()
     return imgDB.getKeywordsImg(dbId, imgId)
 
 def removeAllKeywordImg(dbId, imgId):
@@ -794,7 +836,8 @@ def loadAllDbsAs(path):
     @since: 0.7
     @return:  total db spaces read
     """    
-    
+
+    reloadImgDBIfNeeded()
     return imgDB.loadalldbs(path)
 
 def saveAllDbs():
@@ -818,7 +861,8 @@ def loadAllDbs():
     @since: 0.7
     @return:  count of persisted db spaces
     """    
-    
+
+    reloadImgDBIfNeeded()
     return imgDB.loadalldbs(settings.core.get('database','databasePath'))
 
 def removeDb(dbid):
