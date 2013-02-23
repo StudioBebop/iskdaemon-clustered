@@ -78,14 +78,26 @@ def reloadImgDB():
     # Load db file from copied file
     imgDB = ImgDB(settings)
     imgDB.loadalldbs(cp_path)
+    imgDB.globalFileName(db_path)
 
     # Delete copied file
     os.remove(cp_path)
 
 def reloadImgDBIfNeeded():
     global imgDB_last_modified
+
+    # Return if this is the writer process
+    current_port = settings.core.getint('daemon', 'basePort')
+    writer_port = settings.core.getint('daemon', 'writerPort')
+    if current_port == writer_port:
+        rootLog.info('| Blocking WRITER instance from reloading image database')
+        return
+
+    # Return if the db file doesn't exist yet
     if not os.path.exists(os.path.expanduser(settings.core.get('database', 'databasePath'))):
         return
+
+    # Check if the db's mtime is newer then the last one we have on file
     (mode, ino, dev, nlink, uid, gid, size, atime, mtime, ctime) = os.stat(os.path.expanduser(settings.core.get('database', 'databasePath')))
     if mtime > imgDB_last_modified:
         reloadImgDB()
