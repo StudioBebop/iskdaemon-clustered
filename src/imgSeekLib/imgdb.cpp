@@ -119,7 +119,7 @@ void closeDbase() {
 }
 
 int getImageWidth(const int dbId, long int id) {
-	if (!validate_imgid(dbId, id)) { cerr << "ERROR: image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return 0;};
+	if (!validate_imgid(dbId, id)) { cerr << "ERROR: getImageWidth - image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return 0;};
 	return dbSpace[dbId]->sigs[id]->width;
 }
 
@@ -129,7 +129,7 @@ bool isImageOnDB(const int dbId, long int id) {
 }
 
 int getImageHeight(const int dbId, long int id) {
-	if (!validate_imgid(dbId, id)) { cerr << "ERROR: image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return 0;};
+	if (!validate_imgid(dbId, id)) { cerr << "ERROR: getImageHeight - image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return 0;};
 	return dbSpace[dbId]->sigs[id]->height;
 }
 
@@ -1020,7 +1020,7 @@ std::vector<double> queryImgID(const int dbId, long int id, int numres, int sket
 		return Vres;
 	}
 
-	if (!validate_imgid(dbId, id)) { cerr << "ERROR: image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return std::vector<double>();};
+	if (!validate_imgid(dbId, id)) { cerr << "ERROR: queryImgID - image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return std::vector<double>();};
 
 	return queryImgData(dbId, dbSpace[dbId]->sigs[id]->sig1, dbSpace[dbId]->sigs[id]->sig2, dbSpace[dbId]->sigs[id]->sig3,
 			dbSpace[dbId]->sigs[id]->avgl, numres, sketch, colorOnly);
@@ -1031,14 +1031,14 @@ std::vector<double> queryImgIDFiltered(const int dbId, long int id, int numres, 
 	numres is the maximum number of results
 	 */
 
-	if (!validate_imgid(dbId, id)) { cerr << "ERROR: image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return std::vector<double>();};
+	if (!validate_imgid(dbId, id)) { cerr << "ERROR: queryImgIDFiltered - image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return std::vector<double>();};
 	return queryImgDataFiltered(dbId, dbSpace[dbId]->sigs[id]->sig1, dbSpace[dbId]->sigs[id]->sig2, dbSpace[dbId]->sigs[id]->sig3,
 			dbSpace[dbId]->sigs[id]->avgl, numres, 0, bf, colorOnly);
 }
 
 int removeID(const int dbId, long int id) {
 
-	if (!validate_imgid(dbId, id)) { cerr << "ERROR: image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return 0;};
+	if (!validate_imgid(dbId, id)) { cerr << "ERROR: removeID - image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return 0;};
 
 	delete dbSpace[dbId]->sigs[id];
 	dbSpace[dbId]->sigs.erase(id);
@@ -1057,8 +1057,8 @@ double calcAvglDiff(const int dbId, long int id1, long int id2) {
 	/* return the average luminance difference */
 
 	// are images on db ?
-	if (!validate_imgid(dbId, id1)) { cerr << "ERROR: image id (" << id1 << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return 0;};
-	if (!validate_imgid(dbId, id2)) { cerr << "ERROR: image id (" << id2 << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return 0;};
+	if (!validate_imgid(dbId, id1)) { cerr << "ERROR: calcAvgDiff(1) - image id (" << id1 << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return 0;};
+	if (!validate_imgid(dbId, id2)) { cerr << "ERROR: calcAvgDiff(2) - image id (" << id2 << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return 0;};
 
 	return fabs(sigs[id1]->avgl[0] - sigs[id2]->avgl[0])
 	+ fabs(sigs[id1]->avgl[1] - sigs[id2]->avgl[1])
@@ -1189,7 +1189,7 @@ keywordStruct* getKwdPostings(int hash) {
 
 // keywords in images
 bool addKeywordImg(const int dbId, const int id, const int hash) {
-	if (!validate_imgid(dbId, id)) { cerr << "ERROR: image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return false;};
+	if (!validate_imgid(dbId, id)) { cerr << "ERROR: addKeywordImg - image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return false;};
 
 	// populate keyword postings
 	getKwdPostings(hash)->imgIdsFilter->insert(id);
@@ -1199,7 +1199,7 @@ bool addKeywordImg(const int dbId, const int id, const int hash) {
 }
 
 bool addKeywordsImg(const int dbId, const int id, int_vector hashes){
-	if (!validate_imgid(dbId, id)) { cerr << "ERROR: image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return false;};
+	if (!validate_imgid(dbId, id)) { cerr << "ERROR: addKeywordSimg - image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return false;};
 
 	// populate keyword postings
 	for (intVectorIterator it = hashes.begin(); it != hashes.end(); it++) {
@@ -1213,7 +1213,7 @@ bool addKeywordsImg(const int dbId, const int id, int_vector hashes){
 }
 
 bool removeKeywordImg(const int dbId, const int id, const int hash){
-	if (!validate_imgid(dbId, id)) { cerr << "ERROR: image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return false;};
+	if (!validate_imgid(dbId, id)) { cerr << "ERROR: removeKeywordImg - image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return false;};
 
 	//TODO remove from kwd postings, maybe creating an API method for regenerating kwdpostings filters or
 	// calling it internally after a number of kwd removes
@@ -1221,14 +1221,14 @@ bool removeKeywordImg(const int dbId, const int id, const int hash){
 }
 
 bool removeAllKeywordImg(const int dbId, const int id){
-	if (!validate_imgid(dbId, id)) { cerr << "ERROR: image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return false;};
+	if (!validate_imgid(dbId, id)) { cerr << "ERROR: removeAllKeywordImg - image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return false;};
 	//TODO remove from kwd postings
 	dbSpace[dbId]->sigs[id]->keywords.clear();
 	return true;
 }
 
 std::vector<int> getKeywordsImg(const int dbId, const int id){
-	if (!validate_imgid(dbId, id)) { cerr << "ERROR: image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return std::vector<int>();};
+	if (!validate_imgid(dbId, id)) { cerr << "ERROR: getKeywordsImg - image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ; return std::vector<int>();};
 	int_hashset& imgKwds = dbSpace[dbId]->sigs[id]->keywords;
 	int_vector ret;
 	ret.insert(ret.end(),imgKwds.begin(),imgKwds.end());
@@ -1284,7 +1284,7 @@ std::vector<double> queryImgIDKeywords(const int dbId, long int id, int numres, 
 	if (!validate_dbid(dbId)) { cerr << "ERROR: database space not found (" << dbId << ")" << endl; return std::vector<double>();}
 
 	if ((id != 0) && !validate_imgid(dbId, id)) { // not search random and image doesnt exist
-		cerr << "ERROR: image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ;
+		cerr << "ERROR: queryImgIDKeywords - image id (" << id << ") not found on given dbid (" << dbId << ") or dbid not existant" << endl ;
 		return std::vector<double>();
 	}
 
