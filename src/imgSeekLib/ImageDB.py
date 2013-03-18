@@ -135,7 +135,8 @@ class ImgDB:
     @utils.dumpArgs
     def createdb(self,dbId):
         if self.dbSpaces.has_key(dbId):
-            log.warn('Replacing existing database id:'+str(dbId))
+            log.warn('Skipping creating existing database id:'+str(dbId))
+            return dbId
         self.dbSpaces[dbId] = DBSpace(dbId)
         self.resetdb(dbId)        
         return dbId
