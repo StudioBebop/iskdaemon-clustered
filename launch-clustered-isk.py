@@ -12,6 +12,9 @@ import subprocess
 import threading
 import time
 
+from Queue import Queue, Empty
+import sys
+
 ###
 # Global Config
 ###
@@ -60,11 +63,60 @@ def get_config(i):
 
     return config
 
+def enqueue_output(out, queue):
+    for line in iter(out.readline, b''):
+        queue.put(line)
+    out.close()
+
 def run_instance(isk_path):
     while True:
+        # Launch iskdaemon subprocess
         print "[+] Launching daemon! @ %s" % isk_path
-        c = subprocess.Popen([exec_path], cwd=isk_path)
-        c.wait()
+        c = subprocess.Popen([exec_path],
+                             cwd=isk_path,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE,
+                             bufsize=0)
+
+        # Create non-blocking queue threads for reading stdout and stderr
+        out_queue = Queue()
+        out_thread = threading.Thread(target=enqueue_output, args=(c.stdout, out_queue))
+        out_thread.daemon = True
+        out_thread.start()
+        err_queue = Queue()
+        err_thread = threading.Thread(target=enqueue_output, args=(c.stderr, err_queue))
+        err_thread.daemon = True
+        err_thread.start()
+
+        # Sit here and read the output from stderr and stdout
+        # We do this instead of just calling wait() because sometimes
+        # we get some scary C related errors that will make the process hang forever
+        bad_lines = ["*** glibc detected ***", "free(): invalid next size "]
+        while c.poll() is None:
+            try:
+                out = out_queue.get_nowait()
+            except Empty:
+                out = ""
+            try:
+                err = err_queue.get_nowait()
+            except Empty:
+                err = ""
+            if not out and not err:
+                time.sleep(0.3)
+                continue
+            if out: print out
+            if err: print err
+            kill_proc = False
+            for line in bad_lines:
+                if kill_proc: break
+                if line in out or line in err:
+                  kill_proc = True
+
+            if kill_proc and c.poll() is None:
+                print "[!} Scary C error detected, forcing instance to kill itself!"
+                c.kill()
+                break
+
         print "[!] Process @ %s died!" % isk_path
         print "[!] Relaunching it!"
 
